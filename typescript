@@ -1,0 +1,621 @@
+Script started on Sat 07 Nov 2020 10:20:30 PM EST
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[?1034h[wilbourn_ee@cobra zipfile]$ cat -n zip.cpp
+     1	//Emily Wilbourn
+     2	//zip file
+     3	//11/2/2020
+     4	#include <iostream> /*used for console input and output*/
+     5	#include <fstream> /*used for file input and output*/
+     6	#include <map>/*for mapping object*/
+     7	#include <vector> /*used for determining how many unique values we have in the file*/
+     8	#include <algorithm> /*used to sort a vector*/
+     9	#include "huffman.h" /*used to create the Huffman Tree*/
+    10	#include <cstring> /*used for comparing the arguments given on command line to a string*/
+    11	#include <stdio.h> /*used to rename the file to a zip file*/
+    12	using namespace std;
+    13	void PrintLetters (map<int, int> m);
+    14	void countLetters (int Letters[],vector <int> uniqueLetters, int LettersSize, map<int, int> &m);
+    15	string readFile(string fileName);
+    16	void convertStringtoIntArray(int i [], string s);
+    17	void  removeDuplicateValues(string s, vector<int> &letters);
+    18	void insertLetters(map<int, int> m, HuffmanTree &h);
+    19	void writeZipFile(map<int, int> m, string fileName, HuffmanTree h, string long_string);
+    20	void printHelpMenu();
+    21	double getCompressionRatio(int numBits, int numChars);
+    22	int main(int argc, char *argv[])
+    23	{
+    24		string fileName;
+    25		//if argc == 1, it means only one thing was given on cmd line (just the call
+    26		//to the executable file); we want argc to be either 2 or 3
+    27		if( argc > 3 || argc < 2)
+    28		{
+    29			cout << "ZIP: Invalid format" << endl;
+    30			cout << "Try `myZip --help' for more information." << endl;
+    31			return -1;
+    32		}
+    33		
+    34		if(strcmp(argv[1], "--help") == 0)
+    35		{
+    36			printHelpMenu();
+    37			//end program by exiting with error code
+    38			return -1;
+    39		}			
+    40		//receive the fileName via command line argument
+    41		//strcmp compares a string against the command line argument 
+    42		//that was received, which is a cstring
+    43		if(strcmp(argv[1], "--t") == 0)
+    44	        {
+    45			fileName = argv[2];
+    46		}
+    47		else
+    48		{
+    49			fileName = argv[1];
+    50		}
+    51		//test to see if the fileName is a valid file
+    52	 	ifstream test(fileName);
+    53		if (!test.is_open())
+    54		{
+    55			cout << "ZIP: file " << fileName << " does not exist." << endl;
+    56			return -1;
+    57		}
+    58		
+    59		//create a string that will store all the contents of the file
+    60		string long_string = readFile(fileName);
+    61		//create an array of integers that will hold the ascii representation
+    62		//of all the characters in the file
+    63		int intArray [long_string.size()];
+    64	
+    65		//put the ASCII value for each character in long_string into intArray
+    66		convertStringtoIntArray(intArray, long_string);	
+    67	
+    68		//create a map to map the ASCII value of a character to its frequency in the file
+    69		map <int, int> myMap;
+    70	
+    71		//create a vector that will store the ASCII values of the unique characters
+    72		vector <int> uniqueChars;
+    73	
+    74		//create a vector of just the unique characters that are found within long_string
+    75		removeDuplicateValues(long_string, uniqueChars);
+    76	
+    77		//get the frequency of each character within long_string and map it to the ASCII value
+    78		countLetters(intArray, uniqueChars, long_string.size(), myMap);
+    79	
+    80		//print out the frequency of each unique character in the file
+    81		//PrintLetters(myMap);	
+    82		
+    83		HuffmanTree h;
+    84		insertLetters (myMap, h);
+    85		h.build();
+    86		if(strcmp(argv[1],"--t") == 0)	
+    87		{
+    88			h.PrintTable();	
+    89		}
+    90		writeZipFile(myMap, fileName, h, long_string);
+    91		return 0;
+    92	}
+    93	
+    94	//method to read in the file
+    95	//precondition: pass in the filename (string) 
+    96	//postcondition: return the string, which is the whole file stored in a string
+    97	string readFile(string fileName)
+    98	{
+    99	        ifstream file;
+   100	        file.open(fileName);
+   101	
+   102		char c;
+   103	        string line;
+   104	
+   105		//long string that will hold all the contents of the file
+   106		string long_string;
+   107	        if(file.is_open())
+   108	        {
+   109			//keep looping while the file has characters
+   110	                while(file.get(c) )
+   111	                {
+   112				//concatenate the current character to a string
+   113				long_string+=c;
+   114			}
+   115		}
+   116		file.close();
+   117		return long_string;
+   118	}
+   119	
+   120	//method to convert a string to an array of integers (ascii values that represent characters)
+   121	//precondition: pass in an integer array that will hold the integer representation (ASCII values)
+   122	//for all the characters in the file as well as the string that contains all the characters from
+   123	//the file
+   124	//postcondition: returns nothing, but the integer array will be filled with ASCII values
+   125	void convertStringtoIntArray(int letters [], string long_string)
+   126	{
+   127		for (int j = 0; j < long_string.size(); j++)
+   128		{
+   129			//make the index of j in the int i array equal to the integer 
+   130			//representation of the character found in the string at index j
+   131			//
+   132			//aka, the ascii value for the character
+   133			letters[j] = int(long_string[j]);		
+   134		}
+   135	}
+   136	
+   137	//method to fill a vector of integers with only the ASCII representation
+   138	//of the unique values in the file
+   139	//precondition: pass in the string that contains all the characters in the file and the 
+   140	//vector we are filling with unique characters in the file
+   141	//postcondition: return nothing, but the letters vector is filled with unique values
+   142	void  removeDuplicateValues(string s, vector<int> &letters)
+   143	{
+   144		for (int i = 0; i < s.size(); i++)
+   145		{
+   146			//add the ASCII representation of a character to the vector
+   147			letters.push_back(int(s[i]));
+   148		}
+   149		sort(letters.begin(), letters.end());
+   150		letters.erase(unique(letters.begin(), letters.end()), letters.end());
+   151	}
+   152	
+   153	//method to determine the frequency of characters in a file
+   154	//
+   155	//precondition: pass in the integer array of letters (which has the ASCII values for each char
+   156	//in the file), the vector of integers of unique letters (which has the ASCII values for the 
+   157	//unique characters in the file), the size of the letters array, and the mapping object (which
+   158	//maps ASCII values for each unique character to their frequencies within the file)
+   159	//
+   160	//postcondition: return nothing, but the mapping object is filled with the frequencies of each
+   161	//ASCII representation of unique characters within the file
+   162	void countLetters (int letters[], vector <int> uniqueLetters, int lettersSize, map<int, int> &m)
+   163	{
+   164	        char ch;
+   165		int frequencies [uniqueLetters.size()];
+   166		//instantiate all the values in the frequency array to 0
+   167		for (int i = 0; i < uniqueLetters.size(); i++)
+   168			frequencies[i] = 0;
+   169	
+   170		//iterate through the characters in the file and increment the 
+   171		//value in the frequency array that corresponds to the unique letter
+   172		//as a letter in letters[] is determined to be a unique letter (which, 
+   173		//every letter will be)
+   174		for (int i = 0; i < lettersSize; i++)
+   175		{
+   176			for(int j = 0; j < uniqueLetters.size(); j++)
+   177			{	
+   178				if(int(letters[i]) == uniqueLetters.at(j))
+   179					frequencies[j] += 1;
+   180			}
+   181		}
+   182		//now, map the frequencies of each unique letter to the ASCII representation 
+   183		//of the unique letter	
+   184		for (int i = 0; i < uniqueLetters.size(); i++)
+   185		{
+   186			m[uniqueLetters.at(i)] = frequencies[i];
+   187		}
+   188	}
+   189	
+   190	//prints out the letters and the frequency of each letter
+   191	//precondition: pass in the mapping object (which mapped ASCII values to frequencies)
+   192	//postcondition: return nothing, but print out the number of appearances of each character 
+   193	//within the file 
+   194	void PrintLetters (map<int, int> m)
+   195	{
+   196		//mapping ascii character to frequency
+   197		map<int, int>::iterator j;
+   198	
+   199		//iterate through our map and print out the characters and their respective frequencies	
+   200		for (j = m.begin(); j != m.end(); ++j)
+   201		{
+   202			if((j->first) == 10)
+   203				cout << "Char nl appearances: " << j->second << endl;
+   204			else if((j->first) == 32)
+   205				cout << "Char sp appearances: " << j->second << endl;
+   206			else
+   207				cout << "Char " << char(j->first) << " appearances: " << j->second << endl;
+   208		}
+   209	}
+   210	
+   211	//method to insert the letters from the file and their frequency into a Huffman Tree
+   212	//precondition: pass in the mapping object, which maps ASCII values to frequencies, and the Huffman tree object
+   213	//postcondition: return nothing, but the Huffman tree is filled
+   214	void insertLetters(map<int, int> m, HuffmanTree &h)
+   215	{
+   216		//mapping ascii character to frequency
+   217		map<int, int>::iterator j;
+   218	
+   219		//iterate through our map and print out the characters and their respective frequencies	
+   220		for (j = m.begin(); j != m.end(); ++j)
+   221		{
+   222			h.insert(char(j->first), (j->second));
+   223		}
+   224	}
+   225	
+   226	//method to return the compression ratio for a zip file
+   227	//precondition: pass in the number of bits in the compressed message and 
+   228	//the number of characters in the input file
+   229	//postcondition: return the compression ratio (double)
+   230	double getCompressionRatio(int numBits, int numChars)
+   231	{
+   232		int c = numChars*8;
+   233		double d = (double)numBits/(double)c;
+   234		return (1-d);
+   235	}
+   236	
+   237	//method to print out how to use the program when a user uses the --help flag
+   238	//precondition: pass in nothing
+   239	//postcondition: return nothing, however the options will be printed to the screen
+   240	void printHelpMenu()
+   241	{
+   242		cout << "Usage: ZIP [OPTION]... [FILE]..." << endl;
+   243		cout << "Compress a text file using Huffman encoding.\n" << endl;
+   244	  	cout << "--t              Display the Huffman encoding table." << endl;
+   245	  	cout << "--help           Provide help on command.\n " << endl;
+   246	}
+   247	
+   248	//method to load up the zip file
+   249	//precondition: mapping object (ascii value to frequency), fileName for file we're zipping, 
+   250	//HuffmanTree object, and long_string(which holds all the values in the input file)
+   251	//postcondition: return nothing, but fill the zipped file
+   252	void writeZipFile(map<int, int> m, string fileName, HuffmanTree h, string long_string)
+   253	{
+   254		string new_name = fileName + ".zip";
+   255	        ofstream outfile;
+   256	        outfile.open(new_name);
+   257	
+   258		//integer to hold the total number of bits in the encoded message
+   259		int totalZipBits = 0;
+   260		
+   261		//write out the number of unique letters in input to output file
+   262	        outfile << m.size() << "\n";
+   263		
+   264		map<int, int>:: iterator j;
+   265		//iterate through the map of letters from the file and 
+   266		//output their unique binary codes to the zip file
+   267		for (j = m.begin(); j != m.end(); ++j)
+   268		{
+   269			string code = h.GetCode(char(j->first));
+   270			outfile << j->first << " " << code << "\n";
+   271		}
+   272		//now, iterate through long_string (the original input) and
+   273		//print out the encoded character tha corresponds with each
+   274		//character in long_string
+   275		for (int i = 0; i < long_string.size(); i++)
+   276		{
+   277			string code = h.GetCode(long_string[i]);
+   278			outfile << code;
+   279			//since GetCode returns a string, the number of bits in a code 
+   280			//produced from this command is the size of the string
+   281			totalZipBits += code.size();
+   282		}	
+   283	        outfile.close();
+   284	 
+   285	        cout << "File Successfully Compressed To " << totalZipBits << " Bits (";
+   286		//round to two decimal places
+   287		printf("%.2f",  getCompressionRatio(totalZipBits, long_string.size())*100);
+   288		cout << "% Less)." <<endl;	
+   289	}
+   290	
+   291	
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cat huffman.h
+#include <vector>
+#include <string>
+using namespace std;
+
+struct HNode {
+    char ch;
+    int weight;
+    int parent;
+    int childType;
+};
+
+class HuffmanTree {
+    public:
+	HuffmanTree();				// constructor
+
+	void insert(char ch, int weight);	// inserts a character and its associated weight
+						// into a node of the Huffman tree
+
+	bool inTree(char ch);			// returns a boolean value indicating whether
+						// a given character is stored in the tree
+		
+	int GetFrequency(char ch);		// returns the weight of a given character
+
+	
+	void build();				// Builds the Huffman Tree;
+	
+
+	string GetCode(char ch);		// returns the compressed code of a given
+						// character in the tree using recursion
+
+	void PrintTable();			// displays the Huffman encoding table used in
+						// the compression process
+	
+	int numNodes();				// returns the number of nodes currently in Huffman 
+						// tree
+
+    private:
+	vector<HNode> nodes;
+	int numChars;
+	bool built;                             
+	
+	int lookUp(char ch);			// returns the index of a given character in tree
+	int GetFrequency(int i);		// returns the weight at a given index
+	string GetCode(int i);			// returns the compressed code of the character at 
+						// a given index
+};
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cat myHuffman.cpp
+#include "huffman.h"
+#include <iostream>
+#include <algorithm> /*used for sorting the vector of structs in build method*/
+using namespace std;
+
+HuffmanTree:: HuffmanTree()
+	: numChars(0), built(false) {}
+
+void HuffmanTree:: insert(char ch, int weight) 
+{
+    HNode newNode = {ch, weight, -1, -1}; 
+    built = false;
+    nodes.push_back(newNode);
+    numChars++;
+}
+
+
+//returns a boolean value indicating whether a given character is stored in the tree
+bool HuffmanTree:: inTree(char ch) 
+{
+	bool found = false;
+	for (int i = 0; i < numNodes(); i++)
+	{
+		if(nodes.at(i).ch == ch)
+		{
+			found = true;		
+			break;
+		}
+	}	
+	return found;
+}
+
+//method to return the frequency/weight of a character in a tree
+//return -1 if the character is not in the tree
+int HuffmanTree:: GetFrequency(char ch) 
+{
+	return (inTree(ch) ? GetFrequency(lookUp(ch)) : -1);
+}
+
+//returns the weight at a specific index
+int HuffmanTree:: GetFrequency(int i) 
+{
+	return nodes.at(i).weight;
+}
+
+//returns the index of a given character in the tree
+//returns -1 if it's not in the tree
+int HuffmanTree:: lookUp(char ch) 
+{
+	int index;
+	if(inTree(ch))
+	{
+		for (int i = 0; i < numNodes(); i++)
+		{
+			if(nodes.at(i).ch == ch)
+			{
+				index = i;
+				break;
+			}
+		}	
+	}
+	else	
+		index = -1;
+	return index;
+		
+
+}
+
+//calls a method with the index of wanted character
+//returns the binary representation of the given character
+string HuffmanTree:: GetCode(char ch) 
+{
+	return GetCode(lookUp(ch));
+}
+
+//returns the binary representation of given character
+string HuffmanTree:: GetCode(int i) 
+{
+	if (nodes[i].parent == 0)
+		return "";
+	else
+		return (GetCode(nodes[i].parent) + (char)(nodes[i].childType+'0'));
+}
+
+void HuffmanTree:: PrintTable() 
+{
+	//t nodes iterator
+	int j = 1;
+	cout <<"       ++++  ENCODING TABLE  ++++" << endl;
+	cout << "Index   Char    Weight  Parent  ChildType" << endl;
+
+	for (int i = 0;  i < numNodes();  i++)
+	{	
+		if(int(nodes.at(i).ch) == 10)
+			cout << i << "\t" << "nl" << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t";
+		else if(int(nodes.at(i).ch) == 32)
+			cout << i << "\t" << "sp" << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t";
+		else if(int(nodes.at(i).ch) == 0)
+		{
+			cout << i << "\t" << "T" << j << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t";
+			j+=1;
+		}
+		else 
+			cout << i << "\t" << nodes.at(i).ch << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t";
+		
+		if (nodes.at(i).childType == -1)
+			cout << "N/A" << endl;
+		else
+			cout << nodes.at(i).childType << endl;
+	}
+
+}
+
+int HuffmanTree:: numNodes() 
+{
+	return nodes.size();
+}
+
+void HuffmanTree:: build() 
+{
+	vector <HNode> temp;
+	vector <int> mergedIndexes;
+
+	int originalNodesSize = numNodes();
+
+	//fill the temp vector up with values in the nodes vector
+	//so that we can work on merging nodes without modifying nodes
+	for (int i = 0; i < numNodes(); i++)
+		temp.push_back(nodes.at(i));
+	while (temp.size() != 1)
+	{
+		//sort the temp vector by weight
+		//found this method from: http://www.cplusplus.com/forum/beginner/62890/
+		sort(temp.begin(), temp.end(), [] (const HNode &left, const HNode &right)
+		{
+			return (left.weight < right.weight);
+		});
+		
+		//grab the first two elements in temp vector, which are the nodes we are merging
+		HNode node1 = temp.at(0);
+		HNode node2 = temp.at(1);
+
+		//delete node1 and node2 from the temp vector	
+		//do this by erasing the first element in vector twice
+		temp.erase(temp.begin() + 0);
+		temp.erase(temp.begin() + 0);
+	
+		//instantiate an HNode to represent our merged node
+		HNode mergedNode;
+		mergedNode.ch = '\0';		
+		mergedNode.weight = node1.weight + node2.weight;
+		
+		//add mergedNode back to temp vector so that we can merge it with other nodes
+		//add mergedNode to nodes vector 
+		temp.push_back(mergedNode);
+		nodes.push_back(mergedNode);
+		
+		//get the location of the two nodes being merged in the nodes vector
+		int pos_node1 = lookUp(node1.ch);
+		int pos_node2 = lookUp(node2.ch);
+
+		//instantiate two booleans that will tell us if the position of node1 or
+		//the position of node2 is already in the mergedIndexes vector
+		//we start by assuming that it's not in the vector
+		bool found_pos_node1 = false;
+		bool found_pos_node2 = false;
+
+		for (int i = 0; i < mergedIndexes.size(); i++)
+		{
+			if(mergedIndexes.at(i) == pos_node1)
+				found_pos_node1 = true;
+			if(mergedIndexes.at(i) == pos_node2)
+				found_pos_node2 = true;
+		}
+		
+		//Loop that increments pos_node1 when it is found in mergedIndexes.
+		//The only reason an index would already be in the mergedIndexes vector
+		//is when we have merged nodes (represented by '\0'). Since all nodes are
+		//represented by the same character, and all mergedNodes will be found at
+		//the end of the nodes vector, this is okay to do.
+		while(found_pos_node1)
+		{
+			pos_node1 += 1;
+			found_pos_node1 = false;
+			
+			for (int i = 0; i < mergedIndexes.size(); i++)
+			{
+				if(mergedIndexes.at(i) == pos_node1)
+				{
+					found_pos_node1 = true;
+					break;
+				}
+			}
+		}
+		while(found_pos_node2)
+		{
+			pos_node2 += 1;
+			found_pos_node2 = false;
+			
+			for (int i = 0; i < mergedIndexes.size(); i++)
+			{
+				if(mergedIndexes.at(i) == pos_node2)
+				{
+					found_pos_node2 = true;
+					break;
+				}
+			}
+		}
+		
+		//after doing all this, it's still possible for pos_node1 to equal pos_node2,
+		//which we don't want. So if we encounter this, increment pos_node2 and then
+		//be done.
+		if (pos_node1 == pos_node2)
+			pos_node2 += 1;
+		
+		//push back the indexes we merged to mergedIndexes
+		mergedIndexes.push_back(pos_node1);
+		mergedIndexes.push_back(pos_node2);
+
+		//modify the childType for elements in nodes vector found at pos_node1 and pos_node2
+		nodes.at(pos_node1).childType = 0;
+		nodes.at(pos_node2).childType = 1;
+
+		//Modify the parent for elements in nodes vector found at pos_node1 and pos_node2.
+		//The parent for these nodes is the mergedNode we created.
+		//The index of the mergedNode is the size of the nodes vector minus 1, since the 
+		//mergedNode is the element most recently added to nodes.
+		nodes.at(pos_node1).parent = numNodes()-1;
+		nodes.at(pos_node2).parent = numNodes()-1;
+	}
+	nodes.at(numNodes() -1).parent = 0;
+	nodes.at(numNodes() -1).childType = -1;
+}
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ c++ zip.cpp huffm[K[K[K[K[KmyHuffman.o
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ c++ zip.cpp myHuffman.o[6Pat myHuffman.cpp[4Phuffman.h-n zip.cppvi huffman.cpp [2P./ZIP sample1[Kvi huffman.cpp [3Punzip.cpphuffman.cpp[2Phcppls[Kcd Prog3ls[Kcd csc245ls[Kvi sample1.zipoutput1.txtls[Kcp sample1.zip /scratch/csc245/wilbourn_ee/Prog3[4P /scratch/csc245/wilbourn_ee/Prog3[1Pch/csc245/wilbourn_ee/Prog3[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Czip.cpp /scratch/csc245/wilbourn_ee/Prog3[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cvi zip.cpp[Ksample1.zip[4Pzip.cppmyHuffman.cpp[3Pa.out sample1[K sample1[C-sample1-sample1tsample1 sample1
+ZIP: file sample1 does not exist.
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ a.out --t sample1_o
+       ++++  ENCODING TABLE  ++++
+Index   Char    Weight  Parent  ChildType
+0	nl	1	7	0
+1	sp	13	10	1
+2	a	10	9	1
+3	e	15	11	0
+4	i	12	10	0
+5	s	3	7	1
+6	t	4	8	0
+7	T1	4	8	1
+8	T2	8	9	0
+9	T3	18	11	1
+10	T4	25	12	0
+11	T5	33	12	1
+12	T6	58	0	N/A
+File Successfully Compressed To 146 Bits (68.53% Less).
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ mv a.out myZip
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ ls
+huffman.h      myHuffman.o  myZip.cpp  sample1_o      [0m[01;31msample1.zip[0m  unzip.cpp
+myHuffman.cpp  [01;32mmyZip[0m        README     [01;31msample1_o.zip[0m  typescript   zip.cpp
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ c++ unzip.cpp
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ mv a.out myUnzip
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ myUnzip sample1_o.zip
+File Successfully Inflated Back To Original
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ ls
+huffman.h      myHuffman.o  [0m[01;32mmyZip[0m      README     [01;31msample1_o.zip[0m  typescript  zip.cpp
+myHuffman.cpp  [01;32mmyUnzip[0m      myZip.cpp  sample1_o  [01;31msample1.zip[0m    unzip.cpp
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cat sample1_0[Ko.zip
+7
+10 11010
+32 01
+97 111
+101 10
+105 00
+115 11011
+116 1100
+11111111111111111111111111111101101010101010101010101010101010010000000000000000000000000111011110111101101110011001100110001010101010101010111010]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ vi sampel[K[Kle1
+[?1049h[?1h=[2;1H▽[6n[2;1H  [1;1H]11;?[1;42r[?12;25h[?12l[?25h[27m[m[H[2J[?25l[42;1H"sample1" [New File][>c[2;1H[1m[34m~                                                                                        [3;1H~                                                                                        [4;1H~                                                                                        [5;1H~                                                                                        [6;1H~                                                                                        [7;1H~                                                                                        [8;1H~                                                                                        [9;1H~                                                                                        [10;1H~                                                                                        [11;1H~                                                                                        [12;1H~                                                                                        [13;1H~                                                                                        [14;1H~                                                                                        [15;1H~                                                                                        [16;1H~                                                                                        [17;1H~                                                                                        [18;1H~                                                                                        [19;1H~                                                                                        [20;1H~                                                                                        [21;1H~                                                                                        [22;1H~                                                                                        [23;1H~                                                                                        [24;1H~                                                                                        [25;1H~                                                                                        [26;1H~                                                                                        [27;1H~                                                                                        [28;1H~                                                                                        [29;1H~                                                                                        [30;1H~                                                                                        [31;1H~                                                                                        [32;1H~                                                                                        [33;1H~                                                                                        [34;1H~                                                                                        [35;1H~                                                                                        [36;1H~                                                                                        [37;1H~                                                                                        [38;1H~                                                                                        [39;1H~                                                                                        [40;1H~                                                                                        [41;1H~                                                                                        [m[42;72H0,0-1[9CAll[1;1H[?12l[?25h[?25l[42;1H[K[42;1H:[?12l[?25hq[?25l[?12l[?25h[?25l[42;1H[K[42;1H[?1l>[?12l[?25h[?1049l]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ vi a[Ksample1_o
+[?1049h[?1h=[2;1H▽[6n[2;1H  [1;1H]11;?[1;42r[?12;25h[?12l[?25h[27m[m[H[2J[?25l[42;1H"sample1_o" 1L, 58C[>c[1;1Haaaaaaaaaa eeeeeeeeeeeeeee iiiiiiiiiiii sss tttt
+[1m[34m~                                                                                        [3;1H~                                                                                        [4;1H~                                                                                        [5;1H~                                                                                        [6;1H~                                                                                        [7;1H~                                                                                        [8;1H~                                                                                        [9;1H~                                                                                        [10;1H~                                                                                        [11;1H~                                                                                        [12;1H~                                                                                        [13;1H~                                                                                        [14;1H~                                                                                        [15;1H~                                                                                        [16;1H~                                                                                        [17;1H~                                                                                        [18;1H~                                                                                        [19;1H~                                                                                        [20;1H~                                                                                        [21;1H~                                                                                        [22;1H~                                                                                        [23;1H~                                                                                        [24;1H~                                                                                        [25;1H~                                                                                        [26;1H~                                                                                        [27;1H~                                                                                        [28;1H~                                                                                        [29;1H~                                                                                        [30;1H~                                                                                        [31;1H~                                                                                        [32;1H~                                                                                        [33;1H~                                                                                        [34;1H~                                                                                        [35;1H~                                                                                        [36;1H~                                                                                        [37;1H~                                                                                        [38;1H~                                                                                        [39;1H~                                                                                        [40;1H~                                                                                        [41;1H~                                                                                        [m[42;72H1,1[11CAll[1;1H[?12l[?25h[?25l[42;1H[K[42;1H:[?12l[?25hq[?25l[?12l[?25h[?25l[42;1H[K[42;1H[?1l>[?12l[?25h[?1049l]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cd [K[K[Kexit
+exit
+
+Script done on Sat 07 Nov 2020 10:24:38 PM EST

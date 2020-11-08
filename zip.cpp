@@ -286,6 +286,8 @@ void writeZipFile(map<int, int> m, string fileName, HuffmanTree h, string long_s
 	//round to two decimal places
 	printf("%.2f",  getCompressionRatio(totalZipBits, long_string.size())*100);
 	cout << "% Less)." <<endl;	
+
+	int k = remove(fileName.c_str());	
 }
 
 

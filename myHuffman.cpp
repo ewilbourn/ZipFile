@@ -228,6 +228,9 @@ void HuffmanTree:: build()
 		nodes.at(pos_node1).parent = numNodes()-1;
 		nodes.at(pos_node2).parent = numNodes()-1;
 	}
+	//Make the parent of the last merged node 0 so that we know when to stop recursion
+	//when getting the binary code for each letter in the tree.
+	//Make the childType -1, since it doesn't have a childType.
 	nodes.at(numNodes() -1).parent = 0;
 	nodes.at(numNodes() -1).childType = -1;
 }

@@ -9,6 +9,7 @@
 #include <fstream> /*used for file input and output*/
 #include <map>/*for mapping object*/
 #include <algorithm>
+#include <stdio.h> /*for removing the file we unzipped from our directoy*/
 using namespace std;
 
 bool isZipFile(string fileName);
@@ -171,5 +172,6 @@ void fillUnzippedFile(string message, string fileName)
 	outfile << message;
 	outfile.close();
 	cout << "File Successfully Inflated Back To Original" << endl;
+	int i = remove(fileName.c_str());
 }
 
