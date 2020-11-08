@@ -1,0 +1,135 @@
+Emily Wilbourn Readme File
+Project 3
+
+ZIP & UNZIP = non-binary, standard compression & uncompression
+              minimum program requirements
+./ZIP sample1 = creates a sample1.zip compressed file & deletes sample1
+./UNZIP sample1.zip = uncompress sample1.zip to sample1
+
+c++ -c huffman.cpp
+c++ zip.cpp huffman.o
+c++ unzip.cpp
+
+
+
+"MERCER TENNIS" Encoding:
+
+What the zip file looks like (with comments to the side to explain what each thing is):
+10       //there are 10 unique characters in the file that contains "MERCER TENNIS"
+10 1010  //the unique code for ascii character 10 (new line) is 1010
+32 1011  //the unique code for ascii character 32 (space) is 1011
+67 1100  //the unique code for ascii character 67 (C) is 1100
+69 00    //the unique code for ascii character 69 (E) is 00
+73 1101  //the unique code for ascii character 73 (I) is 1101 
+77 1110  //the unique code for ascii character 77 (M) is 1110
+78 011   //the unique code for ascii character 78 (N) is 011
+82 100   //the unique code for ascii character 82 (R) is 100
+83 1111  //the unique code for ascii character 83 (S) is 1111
+84 010   //the unique code for ascii character 84 (T) is 010
+111000100110000100101101000011011110111111010 //this is MERCER TENNIS written out in unique codes for each letter derived from the Huffman tree
+
+
+Huffman Encoding Table for "MERCER TENNIS":
+
+	## ENCODING TABLE FOR ZIP FILE ##
+
+        Index   Char    Weight  Parent  ChildType
+
+        0       nl      1       10      0	   (left child)
+        1       sp      1       10      1	   (right child)
+        2       C       1       11      0	   (left child)
+        3       E       3       16      0	   (left child)
+        4       I       1       11      1	   (right child)
+        5       M       1       12      0	   (left child)
+        6       N       2       13      1	   (right child)
+        7       R       2       14      0	   (left child)
+        8       S       1       12      1	   (right child)
+        9       T       1       13      0	   (left child)
+        10      T1      2       14      1	   (right child)
+        11      T2      2       15      0	   (left child)
+        12      T3      2       15      1	   (right child)
+        13      T4      3       16      1	   (right child)
+        14      T5      4       17      0	   (left child)
+        15      T6      4       17      1	   (right child)
+        16      T7      6       18      0	   (left child)
+        17      T8      8       18      1	   (right child)
+        18      T9      14      0       N/A	   (root)
+
+
+How greedy Huffman algorithm works:
+1. Start with a forest of frequency nodes, which have all the possible character 
+in the file with the frequency of each character within a given input file.
+
+2. "Merge the smallest two frequency" nodes. "If there is a tie, choose any two.
+Form a weighted total node for those two frequencies and label it as T1."
+-quotes are from Dr. Digh's slides on the Huffman greedy algorithm
+
+3. Continue merging the two smallest frequency nodes (and any children attached 
+to them) until all the characters are a part of a tree together. 
+
+4. Then, excluding the root, label all the left branches with a 0 and the right 
+branches with a 1. This will be used when traversing through a tree to find a 
+certain character, and as a result this creates a unique code that represents 
+a given character.
+
+
+How the Huffman class is set up and can be used to help me:
+-The Huffman class header file starts off by declaring a struct called HNode
+that has a character attribute (which is the specific character we're looking
+at in a given Huffman tree), an integer value that represents the weight of the 
+node (aka the number of times a character is seen within a file), an integer
+value that represents its parent (Which would be the array value that the 
+parent can be found at), and an integer representing its childType (which is 
+a 1 or a 0; 1 for right child, 0 for left child).
+	-This struct will come in handy when creating an encoding table for our 
+	Huffman tree.
+
+Public methods:
+- HuffmanTree() 
+	- constructor
+- void insert(char ch, int weight) 
+	- inserts a character and its associated weight into a node of the Huffman tree
+- bool inTree
+	- returns a boolean value indicating whether a given character is stored in the tree
+
+- int GetFrequency (char ch)
+	- returns the weight of a given character
+
+- void build()
+	- builds the Huffman Tree
+
+- string GetCode (char ch)
+	- returns a string containing the the compressed code of a given character in the 
+	tree, using recursion
+
+- void PrintTable()
+	- displays the Huffman encoding table used in the compression process
+
+- int numNodes()
+	- returns the number of nodes currently in the Huffman tree
+
+
+Private variables/methods:
+variables:
+1. vector <HNode> nodes
+	-This is a vector of HNode structs that will be used to create the Huffman tree
+2. int numChars
+	-This is an integer to hold the total number of characters in the tree.
+3. bool built
+	-This is a boolean that will return tree when the tree is finished being built.
+
+methods:
+- int lookUp(char ch)
+	-returns the index of a given character in the tree
+	***this is helpful for when we are getting the compressed code of a character in the tree
+
+- int GetFrequency(int i)
+	-returns the weight at a given index
+	***this will be helpful when trying to build the Huffman tree	
+
+- string GetCode(int i)
+	-returns the compressed code of the character at a given index
+	***called from the public GetCode method 
+
+
+
