@@ -1,5 +1,5 @@
-Script started on Sat 07 Nov 2020 10:20:30 PM EST
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[?1034h[wilbourn_ee@cobra zipfile]$ cat -n zip.cpp
+Script started on Sat 07 Nov 2020 10:52:22 PM EST
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[?1034h[wilbourn_ee@cobra zipfile]$ cat -[K[wilbourn_ee@cobra zipfile]$ cat -n zip.cpp
      1	//Emily Wilbourn
      2	//zip file
      3	//11/2/2020
@@ -288,57 +288,12 @@ Script started on Sat 07 Nov 2020 10:20:30 PM EST
    286		//round to two decimal places
    287		printf("%.2f",  getCompressionRatio(totalZipBits, long_string.size())*100);
    288		cout << "% Less)." <<endl;	
-   289	}
-   290	
-   291	
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cat huffman.h
-#include <vector>
-#include <string>
-using namespace std;
-
-struct HNode {
-    char ch;
-    int weight;
-    int parent;
-    int childType;
-};
-
-class HuffmanTree {
-    public:
-	HuffmanTree();				// constructor
-
-	void insert(char ch, int weight);	// inserts a character and its associated weight
-						// into a node of the Huffman tree
-
-	bool inTree(char ch);			// returns a boolean value indicating whether
-						// a given character is stored in the tree
-		
-	int GetFrequency(char ch);		// returns the weight of a given character
-
-	
-	void build();				// Builds the Huffman Tree;
-	
-
-	string GetCode(char ch);		// returns the compressed code of a given
-						// character in the tree using recursion
-
-	void PrintTable();			// displays the Huffman encoding table used in
-						// the compression process
-	
-	int numNodes();				// returns the number of nodes currently in Huffman 
-						// tree
-
-    private:
-	vector<HNode> nodes;
-	int numChars;
-	bool built;                             
-	
-	int lookUp(char ch);			// returns the index of a given character in tree
-	int GetFrequency(int i);		// returns the weight at a given index
-	string GetCode(int i);			// returns the compressed code of the character at 
-						// a given index
-};
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cat myHuffman.cpp
+   289	
+   290		int k = remove(fileName.c_str());	
+   291	}
+   292	
+   293	
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cat -n zip.cpp[Kcat huffman.cpp
 #include "huffman.h"
 #include <iostream>
 #include <algorithm> /*used for sorting the vector of structs in build method*/
@@ -569,13 +524,22 @@ void HuffmanTree:: build()
 		nodes.at(pos_node1).parent = numNodes()-1;
 		nodes.at(pos_node2).parent = numNodes()-1;
 	}
+	//Make the parent of the last merged node 0 so that we know when to stop recursion
+	//when getting the binary code for each letter in the tree.
+	//Make the childType -1, since it doesn't have a childType.
 	nodes.at(numNodes() -1).parent = 0;
 	nodes.at(numNodes() -1).childType = -1;
 }
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ c++ zip.cpp huffm[K[K[K[K[KmyHuffman.o
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ c++ zip.cpp myHuffman.o[6Pat myHuffman.cpp[4Phuffman.h-n zip.cppvi huffman.cpp [2P./ZIP sample1[Kvi huffman.cpp [3Punzip.cpphuffman.cpp[2Phcppls[Kcd Prog3ls[Kcd csc245ls[Kvi sample1.zipoutput1.txtls[Kcp sample1.zip /scratch/csc245/wilbourn_ee/Prog3[4P /scratch/csc245/wilbourn_ee/Prog3[1Pch/csc245/wilbourn_ee/Prog3[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Czip.cpp /scratch/csc245/wilbourn_ee/Prog3[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[Cvi zip.cpp[Ksample1.zip[4Pzip.cppmyHuffman.cpp[3Pa.out sample1[K sample1[C-sample1-sample1tsample1 sample1
-ZIP: file sample1 does not exist.
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ a.out --t sample1_o
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ c++ zip.cpp [K[K[K[K[K[K[K[K-c huffman.cpp
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ c++ zip.cpp huffman.o
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ mv a.out myZip
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ c++ unzip.cpp
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ mv a.out unZip[K[K[K[K[KmyUnzip
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ ls
+huffman.cpp  huffman.h  huffman.o  [0m[01;32mmyUnzip[0m  [01;32mmyZip[0m  README  sample1_o  typescript  unzip.cpp  zip.cpp
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cat sample1_o
+aaaaaaaaaa eeeeeeeeeeeeeee iiiiiiiiiiii sss tttt         
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cat sample1_ols[Kmv a.out myUnzip[3Pc++ unzip.cppmv a.out myZipc++ zip.cpp huffman.o[3P-c huffman.cpp[3Pat[C[C[C[C[C[C[C[C[C[C[C[C[1P-n zip.cppexit[Kcat huffman.h-n zip.cpprm sample1_o.zip ls[Kvi unzip.cppls[Kaa.out sample1_o.zip[6Pc++ unzip.cppls[Ka.out --t sample1_oc++ zip.cpp myHuffman.o[13Pvi zip.cppc++ zip.cpp myHuffman.o[13Pvi zip.cppc++ zip.cpp myHuffman.o[13Pvi zip.cppc++ zip.cpp myHuffman.o[13Pvi zip.cppc++ zip.cpp myHuffman.o[13Pvi zip.cppsample1_ols[Kvi sample1_o[2Pzip.cppc++ zip.cpp myHuffman.o[13Pvi zip.cppc++ zip.cpp myHuffman.o[13Pvi zip.cppc++ zip.cpp myHuffman.o[4Pa.out --t sample1_ols[Kc++ unzip.cppa.out sample1_o.zipla[Ksvi unzip.cppls[Krm sample1_o.zip [3Pcat -n zip.cpp[1Phuffman.hexit[Kcat -n zip.cpphuffman.cpp[3@++ -c[C[C[C[C[C[C[C[C[C[C[C[Czip.cpp huffman.o[7Pmv a.out myZip[1Pc++ unzip.cppmv a.out myUnzipls[Kcat sample1_o[KmyZip -t[K-t sample1_o
        ++++  ENCODING TABLE  ++++
 Index   Char    Weight  Parent  ChildType
 0	nl	1	7	0
@@ -592,18 +556,9 @@ Index   Char    Weight  Parent  ChildType
 11	T5	33	12	1
 12	T6	58	0	N/A
 File Successfully Compressed To 146 Bits (68.53% Less).
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ mv a.out myZip
 ]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ ls
-huffman.h      myHuffman.o  myZip.cpp  sample1_o      [0m[01;31msample1.zip[0m  unzip.cpp
-myHuffman.cpp  [01;32mmyZip[0m        README     [01;31msample1_o.zip[0m  typescript   zip.cpp
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ c++ unzip.cpp
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ mv a.out myUnzip
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ myUnzip sample1_o.zip
-File Successfully Inflated Back To Original
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ ls
-huffman.h      myHuffman.o  [0m[01;32mmyZip[0m      README     [01;31msample1_o.zip[0m  typescript  zip.cpp
-myHuffman.cpp  [01;32mmyUnzip[0m      myZip.cpp  sample1_o  [01;31msample1.zip[0m    unzip.cpp
-]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cat sample1_0[Ko.zip
+huffman.cpp  huffman.h  huffman.o  [0m[01;32mmyUnzip[0m  [01;32mmyZip[0m  README  [01;31msample1_o.zip[0m  typescript  unzip.cpp  zip.cpp
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cat sample1_o.zip
 7
 10 11010
 32 01
@@ -612,10 +567,14 @@ myHuffman.cpp  [01;32mmyUnzip[0m      myZip.cpp  sample1_o  [01;31msample1.zi
 105 00
 115 11011
 116 1100
-11111111111111111111111111111101101010101010101010101010101010010000000000000000000000000111011110111101101110011001100110001010101010101010111010]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ vi sampel[K[Kle1
-[?1049h[?1h=[2;1H▽[6n[2;1H  [1;1H]11;?[1;42r[?12;25h[?12l[?25h[27m[m[H[2J[?25l[42;1H"sample1" [New File][>c[2;1H[1m[34m~                                                                                        [3;1H~                                                                                        [4;1H~                                                                                        [5;1H~                                                                                        [6;1H~                                                                                        [7;1H~                                                                                        [8;1H~                                                                                        [9;1H~                                                                                        [10;1H~                                                                                        [11;1H~                                                                                        [12;1H~                                                                                        [13;1H~                                                                                        [14;1H~                                                                                        [15;1H~                                                                                        [16;1H~                                                                                        [17;1H~                                                                                        [18;1H~                                                                                        [19;1H~                                                                                        [20;1H~                                                                                        [21;1H~                                                                                        [22;1H~                                                                                        [23;1H~                                                                                        [24;1H~                                                                                        [25;1H~                                                                                        [26;1H~                                                                                        [27;1H~                                                                                        [28;1H~                                                                                        [29;1H~                                                                                        [30;1H~                                                                                        [31;1H~                                                                                        [32;1H~                                                                                        [33;1H~                                                                                        [34;1H~                                                                                        [35;1H~                                                                                        [36;1H~                                                                                        [37;1H~                                                                                        [38;1H~                                                                                        [39;1H~                                                                                        [40;1H~                                                                                        [41;1H~                                                                                        [m[42;72H0,0-1[9CAll[1;1H[?12l[?25h[?25l[42;1H[K[42;1H:[?12l[?25hq[?25l[?12l[?25h[?25l[42;1H[K[42;1H[?1l>[?12l[?25h[?1049l]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ vi a[Ksample1_o
-[?1049h[?1h=[2;1H▽[6n[2;1H  [1;1H]11;?[1;42r[?12;25h[?12l[?25h[27m[m[H[2J[?25l[42;1H"sample1_o" 1L, 58C[>c[1;1Haaaaaaaaaa eeeeeeeeeeeeeee iiiiiiiiiiii sss tttt
-[1m[34m~                                                                                        [3;1H~                                                                                        [4;1H~                                                                                        [5;1H~                                                                                        [6;1H~                                                                                        [7;1H~                                                                                        [8;1H~                                                                                        [9;1H~                                                                                        [10;1H~                                                                                        [11;1H~                                                                                        [12;1H~                                                                                        [13;1H~                                                                                        [14;1H~                                                                                        [15;1H~                                                                                        [16;1H~                                                                                        [17;1H~                                                                                        [18;1H~                                                                                        [19;1H~                                                                                        [20;1H~                                                                                        [21;1H~                                                                                        [22;1H~                                                                                        [23;1H~                                                                                        [24;1H~                                                                                        [25;1H~                                                                                        [26;1H~                                                                                        [27;1H~                                                                                        [28;1H~                                                                                        [29;1H~                                                                                        [30;1H~                                                                                        [31;1H~                                                                                        [32;1H~                                                                                        [33;1H~                                                                                        [34;1H~                                                                                        [35;1H~                                                                                        [36;1H~                                                                                        [37;1H~                                                                                        [38;1H~                                                                                        [39;1H~                                                                                        [40;1H~                                                                                        [41;1H~                                                                                        [m[42;72H1,1[11CAll[1;1H[?12l[?25h[?25l[42;1H[K[42;1H:[?12l[?25hq[?25l[?12l[?25h[?25l[42;1H[K[42;1H[?1l>[?12l[?25h[?1049l]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ cd [K[K[Kexit
+11111111111111111111111111111101101010101010101010101010101010010000000000000000000000000111011110111101101110011001100110001010101010101010111010]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ 
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ ls
+huffman.cpp  huffman.h  huffman.o  [0m[01;32mmyUnzip[0m  [01;32mmyZip[0m  README  [01;31msample1_o.zip[0m  typescript  unzip.cpp  zip.cpp
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ myUnzip sample1_o.zip
+File Successfully Inflated Back To Original
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ ls
+huffman.cpp  huffman.h  huffman.o  [0m[01;32mmyUnzip[0m  [01;32mmyZip[0m  README  sample1_o  typescript  unzip.cpp  zip.cpp
+]0;wilbourn_ee@cobra:~/csc245/Prog3/zipfile[wilbourn_ee@cobra zipfile]$ exit
 exit
 
-Script done on Sat 07 Nov 2020 10:24:38 PM EST
+Script done on Sat 07 Nov 2020 10:55:44 PM EST
