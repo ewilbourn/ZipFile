@@ -48,7 +48,7 @@ int HuffmanTree:: GetFrequency(int i)
 int HuffmanTree:: lookUp(char ch) 
 {
 	int index;
-	if(inTree(ch)
+	if(inTree(ch))
 	{
 		for (int i = 0; i < numNodes(); i++)
 		{
@@ -91,18 +91,22 @@ void HuffmanTree:: PrintTable()
 
 	for (int i = 0;  i < numNodes();  i++)
 	{	
-	  if(int(nodes.at(i).ch) == 10)
-		cout << i << "\t" << "nl" << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t" << nodes.at(i).childType << endl;
-	  if(int(nodes.at(i).ch) == 32)
-		cout << i << "\t" << "sp" << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t" << nodes.at(i).childType << endl;
-	  if(int(nodes.at(i).ch == 0)
-	  {
-		cout << i << "\t" << "T" << j << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t" << nodes.at(i).childType << endl;
-		j+=1;
-	  }
-	  else 
-		cout << i << "\t" << nodes.at(i).ch << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t" << nodes.at(i).childType << endl;
+		if(int(nodes.at(i).ch) == 10)
+			cout << i << "\t" << "nl" << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t";
+		else if(int(nodes.at(i).ch) == 32)
+			cout << i << "\t" << "sp" << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t";
+		else if(int(nodes.at(i).ch) == 0)
+		{
+			cout << i << "\t" << "T" << j << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t";
+			j+=1;
+		}
+		else 
+			cout << i << "\t" << nodes.at(i).ch << "\t" << nodes.at(i).weight << "\t" << nodes.at(i).parent << "\t";
 		
+		if (nodes.at(i).childType == -1)
+			cout << "N/A" << endl;
+		else
+			cout << nodes.at(i).childType << endl;
 	}
 
 }
@@ -117,7 +121,7 @@ void HuffmanTree:: build()
 	vector <HNode> temp;
 	vector <int> mergedIndexes;
 
-	int originalNodesSize = numNodes;
+	int originalNodesSize = numNodes();
 
 	//fill the temp vector up with values in the nodes vector
 	//so that we can work on merging nodes without modifying nodes
@@ -152,8 +156,8 @@ void HuffmanTree:: build()
 		nodes.push_back(mergedNode);
 		
 		//get the location of the two nodes being merged in the nodes vector
-		pos_node1 = lookUp(node1.ch);
-		pos_node2 = lookUp(node2.ch);
+		int pos_node1 = lookUp(node1.ch);
+		int pos_node2 = lookUp(node2.ch);
 
 		//instantiate two booleans that will tell us if the position of node1 or
 		//the position of node2 is already in the mergedIndexes vector
@@ -209,6 +213,10 @@ void HuffmanTree:: build()
 		if (pos_node1 == pos_node2)
 			pos_node2 += 1;
 		
+		//push back the indexes we merged to mergedIndexes
+		mergedIndexes.push_back(pos_node1);
+		mergedIndexes.push_back(pos_node2);
+
 		//modify the childType for elements in nodes vector found at pos_node1 and pos_node2
 		nodes.at(pos_node1).childType = 0;
 		nodes.at(pos_node2).childType = 1;
@@ -220,4 +228,6 @@ void HuffmanTree:: build()
 		nodes.at(pos_node1).parent = numNodes()-1;
 		nodes.at(pos_node2).parent = numNodes()-1;
 	}
+	nodes.at(numNodes() -1).parent = 0;
+	nodes.at(numNodes() -1).childType = -1;
 }
